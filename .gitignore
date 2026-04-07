@@ -1,0 +1,23 @@
+# Environments
+env/
+venv/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+
+# AI Models & Data (Keep these local to save space)
+*.pt
+*.onnx
+runs/
+datasets/
+
+# AWS Credentials (IMPORTANT for Security)
+certs/
+*.pem
+*.crt
+*.key
+
+# OS files
+.DS_Store
