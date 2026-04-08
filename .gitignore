@@ -1,23 +1,20 @@
-# Environments
+# Virtual environments
 env/
 venv/
 .env
 
-# Python
+# AWS Certificates
+certs/
+
+# Model weights
+models/**/*.pt
+models/**/*.onnx
+models/**/*.bin
+models/**/*.param
+# We keep the structure but ignore the big weights
+!models/yolo11n_ncnn/
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-
-# AI Models & Data (Keep these local to save space)
-*.pt
-*.onnx
-runs/
-datasets/
-
-# AWS Credentials (IMPORTANT for Security)
-certs/
-*.pem
-*.crt
-*.key
-
-# OS files
-.DS_Store
+*$py.class
