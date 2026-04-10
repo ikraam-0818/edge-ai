@@ -32,7 +32,6 @@ class LocalDashboard:
         # Stats Labels
         self.lbl_people = self._create_stat_label("Total People: 0")
         self.lbl_helmets = self._create_stat_label("Helmets: 0", fg="#4CAF50")
-        self.lbl_vests = self._create_stat_label("Vests: 0", fg="#2196F3")
         self.lbl_violations = self._create_stat_label("VIOLATIONS: 0", fg="#f44336")
         
         # Environment Stats (Placeholders for Member 2 to fill)
@@ -71,7 +70,6 @@ class LocalDashboard:
                 # Update stats panel
                 self.lbl_people.config(text=f"Total People: {data.get('person_count', 0)}")
                 self.lbl_helmets.config(text=f"Helmets: {data.get('helmet_count', 0)}")
-                self.lbl_vests.config(text=f"Vests: {data.get('vest_count', 0)}")
                 self.lbl_violations.config(text=f"VIOLATIONS: {data.get('no_helmet_violations', 0)}")
                 
                 # Highlight violations
