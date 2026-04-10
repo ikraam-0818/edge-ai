@@ -3,13 +3,12 @@ import time
 from ultralytics import YOLO
 
 class VisionEngine:
-    def __init__(self, model_path="models/yolo11n_ncnn", camera_index=0):
+    def __init__(self, model_path="models/yolo11n_ncnn_model", camera_index=0):
         """
         Initializes the YOLOv11 NCNN model and connects to the USB Webcam.
         """
         print(f"Load NCNN model from: {model_path}")
-        # Load the exported NCNN model
-        # Note: Ultralytics seamlessly handles the _ncnn folder if we pass the folder path
+        # Ultralytics auto-detects NCNN when folder path ends with _ncnn_model
         self.model = YOLO(model_path, task='detect')
         
         # Connect to webcam
