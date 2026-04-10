@@ -17,8 +17,7 @@ def main():
         data="construction-ppe.yaml",
         epochs=15,  # Increased to 15 for a decent baseline. Feel free to increase to 50+ for better accuracy
         imgsz=640,
-        device="mps", # Uses Mac's Metal Performance Shaders for faster training (if Apple Silicon). Use 'cpu' if it fails.
-        msg="Construction PPE Training"
+        device="mps" # Uses Mac's Metal Performance Shaders for faster training (if Apple Silicon). Use 'cpu' if it fails.
     )
 
     # 3. Export to NCNN
