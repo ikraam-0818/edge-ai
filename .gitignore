@@ -6,13 +6,12 @@ venv/
 # AWS Certificates
 certs/
 
-# Model weights
+# Model weights — block large PyTorch/ONNX files
 models/**/*.pt
 models/**/*.onnx
-models/**/*.bin
-models/**/*.param
-# We keep the structure but ignore the big weights
-!models/yolo11n_ncnn/
+# Allow NCNN weights (.bin + .param) — these are small enough for Git (~12MB)
+!models/yolo11n_ncnn/*.bin
+!models/yolo11n_ncnn/*.param
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
