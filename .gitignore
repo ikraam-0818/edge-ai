@@ -20,3 +20,8 @@ __pycache__/
 
 runs/
 yolo11n.pt
+
+# Runtime / generated files
+*.db
+*.sqlite
+image.png
