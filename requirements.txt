@@ -1,4 +1,23 @@
-ultralytics
-opencv-python-headless
-ncnn
-Pillow
+# ── Edge (Raspberry Pi) ───────────────────────────────────────────────────────
+ultralytics               # YOLOv11 training & inference
+opencv-python-headless    # Computer vision (no GUI backend, Pi compatible)
+ncnn                      # Quantized neural network inference
+Pillow                    # Image processing
+gpiozero                  # GPIO control (Raspberry Pi)
+# adafruit-circuitpython-dht  # DHT22 sensor (uncomment on Pi)
+# smbus2                      # MPU6050 I2C (uncomment on Pi)
+# AWSIoTPythonSDK             # AWS IoT MQTT (uncomment when certs are ready)
+
+# ── Cloud backend ─────────────────────────────────────────────────────────────
+fastapi                   # REST API framework
+uvicorn[standard]         # ASGI server
+sqlalchemy                # ORM / SQLite
+scikit-learn              # Anomaly detection (IsolationForest)
+numpy                     # Numerical ops
+
+# ── Frontend (Streamlit dashboard) ────────────────────────────────────────────
+streamlit>=1.35.0
+streamlit-autorefresh>=1.0.1
+plotly>=5.20.0
+pandas>=2.0.0
+requests>=2.31.0
