@@ -25,3 +25,11 @@ yolo11n.pt
 *.db
 *.sqlite
 image.png
+
+.ssh
+.cache
+.copilot
+.gemini
+.streamlit
+.vscode-server
+.venv

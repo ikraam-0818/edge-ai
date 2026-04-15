@@ -1,173 +1,164 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, Float, String, Boolean, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from datetime import datetime
-from typing import Optional
-import json
-import numpy as np
-from sklearn.ensemble import IsolationForest
+# from fastapi import FastAPI
+# from pydantic import BaseModel
+# from sqlalchemy import create_engine, Column, Integer, Float, String, Boolean, DateTime
+# from sqlalchemy.ext.declarative import declarative_base
+# from sqlalchemy.orm import sessionmaker
+# from datetime import datetime
+# from typing import Optional
+# import json
+# import numpy as np
+# from sklearn.ensemble import IsolationForest
+# from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+# import threading
 
-app = FastAPI(title="Safety Monitor Cloud API")
+# app = FastAPI(title="Safety Monitor Cloud API")
 
-engine = create_engine("sqlite:///safety_monitor.db")
-Base = declarative_base()
-Session = sessionmaker(bind=engine)
+# # ── Database Setup ─────────────────────────────────────────────────
+# engine = create_engine("sqlite:///safety_monitor.db", connect_args={"check_same_thread": False})
+# Base = declarative_base()
+# Session = sessionmaker(bind=engine)
 
-class Reading(Base):
-    __tablename__ = "readings"
-    id              = Column(Integer, primary_key=True, index=True)
-    timestamp       = Column(DateTime, default=datetime.utcnow)
-    helmet_detected = Column(Boolean, default=False)
-    vest_detected   = Column(Boolean, default=False)
-    gas_ppm         = Column(Float,   nullable=True)
-    temperature_c   = Column(Float,   nullable=True)
-    humidity_pct    = Column(Float,   nullable=True)
-    vibration_g     = Column(Float,   nullable=True)
-    is_safe         = Column(Boolean, default=True)
-    alert_level     = Column(String,  default="SAFE")
-    alert_reasons   = Column(String,  default="[]")
+# class Reading(Base):
+#     __tablename__ = "readings"
+#     id           = Column(Integer, primary_key=True, index=True)
+#     timestamp    = Column(DateTime, default=datetime.utcnow)
+#     temperature  = Column(Float, nullable=True)
+#     humidity     = Column(Float, nullable=True)
+#     vibration    = Column(String, default="Normal")
+#     person_count = Column(Integer, default=0)
+#     helmet_count = Column(Integer, default=0)
+#     violations   = Column(Integer, default=0)
+#     alert        = Column(Boolean, default=False)
+#     is_anomaly   = Column(Boolean, default=False)
 
-class Command(Base):
-    __tablename__ = "commands"
-    id        = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(DateTime, default=datetime.utcnow)
-    command   = Column(String)
-    payload   = Column(String)
-    delivered = Column(Boolean, default=False)
+# Base.metadata.create_all(engine)
 
-Base.metadata.create_all(engine)
+# # ── Pydantic Models ────────────────────────────────────────────────
+# class CommandPayload(BaseModel):
+#     command: str
+#     payload: dict = {}
 
-class SensorPayload(BaseModel):
-    helmet_detected: bool          = False
-    vest_detected:   bool          = False
-    gas_ppm:         Optional[float] = None
-    temperature_c:   Optional[float] = None
-    humidity_pct:    Optional[float] = None
-    vibration_g:     Optional[float] = None
-    is_safe:         bool          = True
-    alert_level:     str           = "SAFE"
-    alert_reasons:   list          = []
+# # ── AI Model Setup (Isolation Forest) ──────────────────────────────
+# anomaly_model    = IsolationForest(contamination=0.1, random_state=42)
+# _model_trained   = False
+# _training_buffer = []
 
-class CommandPayload(BaseModel):
-    command: str
-    payload: dict = {}
+# def process_anomaly(reading):
+#     global _model_trained, _training_buffer
+    
+#     # Feature extraction (using temp, humidity, and converting vibration to a number)
+#     vib_score = 1.0 if reading.vibration != "Normal" else 0.0
+#     features = [reading.temperature or 0, reading.humidity or 0, vib_score]
+    
+#     _training_buffer.append(features)
+    
+#     # Train if we have enough data
+#     if len(_training_buffer) >= 50:
+#         X = np.array(_training_buffer[-200:])
+#         anomaly_model.fit(X)
+#         _model_trained = True
 
-anomaly_model    = IsolationForest(contamination=0.1, random_state=42)
-_model_trained   = False
-_training_buffer = []
+#     # Predict
+#     if _model_trained:
+#         X_pred = np.array([features])
+#         is_anomaly = anomaly_model.predict(X_pred)[0] == -1
+#         return bool(is_anomaly)
+#     return False
 
-def update_anomaly_model(reading):
-    global _model_trained, _training_buffer
-    features = [
-        reading.gas_ppm       or 0,
-        reading.temperature_c or 25,
-        reading.vibration_g   or 0,
-    ]
-    _training_buffer.append(features)
-    if len(_training_buffer) >= 50:
-        X = np.array(_training_buffer[-200:])
-        anomaly_model.fit(X)
-        _model_trained = True
+# # ── AWS IoT Configuration & MQTT ───────────────────────────────────
+# ENDPOINT = "YOUR_DOMAIN_CONFIG_ENDPOINT_HERE"
+# CLIENT_ID = "EdgePi-Cloud-DB"
+# TOPIC_SUB = "edge-ai/telemetry"
+# TOPIC_PUB = "edge-ai/commands"
 
-def predict_anomaly(reading):
-    if not _model_trained:
-        return {"score": None, "is_anomaly": False, "trained": False}
-    features   = np.array([[
-        reading.gas_ppm       or 0,
-        reading.temperature_c or 25,
-        reading.vibration_g   or 0,
-    ]])
-    score      = float(anomaly_model.score_samples(features)[0])
-    is_anomaly = anomaly_model.predict(features)[0] == -1
-    return {"score": round(score, 4), "is_anomaly": bool(is_anomaly), "trained": True}
+# mqtt_client = AWSIoTMQTTClient(CLIENT_ID)
 
-@app.get("/")
-def root():
-    return {"status": "Safety Monitor Cloud API running"}
+# def on_mqtt_message(client, userdata, message):
+#     try:
+#         data = json.loads(message.payload.decode('utf-8'))
+        
+#         db = Session()
+#         reading = Reading(
+#             temperature  = data.get("temperature"),
+#             humidity     = data.get("humidity"),
+#             vibration    = data.get("vibration", "Normal"),
+#             person_count = data.get("person_count", 0),
+#             helmet_count = data.get("helmet_count", 0),
+#             violations   = data.get("violations", 0),
+#             alert        = data.get("alert", False)
+#         )
+        
+#         # Run AI Anomaly check
+#         reading.is_anomaly = process_anomaly(reading)
+        
+#         db.add(reading)
+#         db.commit()
+#         db.close()
+#         print(f"Saved to DB: {data}")
+#     except Exception as e:
+#         print(f"Error processing MQTT message: {e}")
 
-@app.post("/readings")
-def receive_reading(data: SensorPayload):
-    db = Session()
-    reading = Reading(
-        helmet_detected = data.helmet_detected,
-        vest_detected   = data.vest_detected,
-        gas_ppm         = data.gas_ppm,
-        temperature_c   = data.temperature_c,
-        humidity_pct    = data.humidity_pct,
-        vibration_g     = data.vibration_g,
-        is_safe         = data.is_safe,
-        alert_level     = data.alert_level,
-        alert_reasons   = json.dumps(data.alert_reasons),
-    )
-    db.add(reading)
-    db.commit()
-    db.refresh(reading)
-    update_anomaly_model(reading)
-    anomaly = predict_anomaly(reading)
-    db.close()
-    return {"id": reading.id, "received": True, "anomaly": anomaly}
+# def start_mqtt():
+#     mqtt_client.configureEndpoint(ENDPOINT, 8883)
+#     mqtt_client.configureCredentials("certs/AmazonRootCA1.pem", "certs/device.key", "certs/device.crt")
+#     mqtt_client.connect()
+#     mqtt_client.subscribe(TOPIC_SUB, 1, on_mqtt_message)
+#     print("MQTT Connected and Subscribed.")
 
-@app.get("/readings/latest")
-def get_latest(limit: int = 60):
-    db   = Session()
-    rows = db.query(Reading).order_by(Reading.id.desc()).limit(limit).all()
-    db.close()
-    return [
-        {
-            "id":              r.id,
-            "timestamp":       r.timestamp.isoformat(),
-            "helmet_detected": r.helmet_detected,
-            "vest_detected":   r.vest_detected,
-            "gas_ppm":         r.gas_ppm,
-            "temperature_c":   r.temperature_c,
-            "humidity_pct":    r.humidity_pct,
-            "vibration_g":     r.vibration_g,
-            "is_safe":         r.is_safe,
-            "alert_level":     r.alert_level,
-            "alert_reasons":   json.loads(r.alert_reasons or "[]"),
-        }
-        for r in reversed(rows)
-    ]
+# # Start MQTT in background thread
+# threading.Thread(target=start_mqtt, daemon=True).start()
 
-@app.get("/stats")
-def get_stats():
-    db     = Session()
-    total  = db.query(Reading).count()
-    unsafe = db.query(Reading).filter(Reading.is_safe == False).count()
-    latest = db.query(Reading).order_by(Reading.id.desc()).first()
-    db.close()
-    return {
-        "total_readings": total,
-        "unsafe_count":   unsafe,
-        "safe_pct":       round((1 - unsafe / max(total, 1)) * 100, 1),
-        "current_status": latest.alert_level if latest else "UNKNOWN",
-    }
+# # ── API Endpoints ──────────────────────────────────────────────────
+# @app.get("/")
+# def root():
+#     return {"status": "Safety Monitor Cloud API running"}
 
-@app.post("/commands")
-def send_command(cmd: CommandPayload):
-    db = Session()
-    c  = Command(command=cmd.command, payload=json.dumps(cmd.payload))
-    db.add(c)
-    db.commit()
-    db.refresh(c)
-    db.close()
-    return {"id": c.id, "queued": True}
+# @app.get("/readings/latest")
+# def get_latest(limit: int = 60):
+#     db   = Session()
+#     rows = db.query(Reading).order_by(Reading.id.desc()).limit(limit).all()
+#     db.close()
+#     return [
+#         {
+#             "id":           r.id,
+#             "timestamp":    r.timestamp.isoformat(),
+#             "temperature":  r.temperature,
+#             "humidity":     r.humidity,
+#             "vibration":    r.vibration,
+#             "person_count": r.person_count,
+#             "helmet_count": r.helmet_count,
+#             "violations":   r.violations,
+#             "alert":        r.alert,
+#             "is_anomaly":   r.is_anomaly
+#         }
+#         for r in reversed(rows)
+#     ]
 
-@app.get("/commands/pending")
-def get_pending_commands():
-    db   = Session()
-    cmds = db.query(Command).filter(Command.delivered == False).all()
-    for c in cmds:
-        c.delivered = True
-    db.commit()
-    db.close()
-    return [
-        {
-            "id":      c.id,
-            "command": c.command,
-            "payload": json.loads(c.payload),
-        }
-        for c in cmds
-    ]
+# @app.get("/stats")
+# def get_stats():
+#     db     = Session()
+#     total  = db.query(Reading).count()
+#     unsafe = db.query(Reading).filter(Reading.alert == True).count()
+#     db.close()
+    
+#     safe_pct = round((1 - unsafe / max(total, 1)) * 100, 1) if total > 0 else 100.0
+    
+#     return {
+#         "total_readings": total,
+#         "unsafe_count":   unsafe,
+#         "safe_pct":       safe_pct
+#     }
+
+# @app.post("/commands")
+# def send_command(cmd: CommandPayload):
+#     # Instead of saving to a local DB, we publish directly to the EdgePi via AWS IoT
+#     payload_str = json.dumps({"command": cmd.command, "payload": cmd.payload})
+#     try:
+#         mqtt_client.publish(TOPIC_PUB, payload_str, 1)
+#         return {"status": "Command published to MQTT", "delivered": True}
+#     except Exception as e:
+#         return {"status": "Failed to publish", "error": str(e)}
+
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8000)

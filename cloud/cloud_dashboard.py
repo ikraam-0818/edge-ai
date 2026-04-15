@@ -20,8 +20,8 @@ try:
     c1.metric("Total Readings",  stats["total_readings"])
     c2.metric("Unsafe Events",   stats["unsafe_count"])
     c3.metric("Safe Rate",       f"{stats['safe_pct']}%")
-    c4.metric("Current Status",  stats["current_status"])
-except:
+    c4.metric("Current Status",  "🚨 ALERT" if stats["unsafe_count"] > 0 else "✅ SAFE")
+except Exception as e:
     st.warning("⏳ API not reachable yet — start the FastAPI server first")
     st.stop()
 
@@ -36,54 +36,51 @@ if data:
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.caption("Gas (ppm)")
-        st.line_chart(df[["gas_ppm"]].dropna(), height=200)
-        st.caption("Vibration (g)")
-        st.line_chart(df[["vibration_g"]].dropna(), height=200)
-    with col_r:
         st.caption("Temperature (°C)")
-        st.line_chart(df[["temperature_c"]].dropna(), height=200)
+        st.line_chart(df[["temperature"]].dropna(), height=200)
+    with col_r:
         st.caption("Humidity (%)")
-        st.line_chart(df[["humidity_pct"]].dropna(), height=200)
+        st.line_chart(df[["humidity"]].dropna(), height=200)
 
-# ── PPE compliance ─────────────────────────────────────────────────
-st.subheader("⛑️ PPE Compliance")
+# ── AI Vision & Compliance ─────────────────────────────────────────
+st.subheader("⛑️ AI Vision Compliance")
 if data:
-    total      = len(data)
-    helmet_ok  = sum(1 for r in data if r["helmet_detected"])
-    vest_ok    = sum(1 for r in data if r["vest_detected"])
-    col1, col2 = st.columns(2)
-    col1.metric("Helmet compliance", f"{helmet_ok}/{total}",
-                f"{helmet_ok/total*100:.0f}%")
-    col2.metric("Vest compliance",   f"{vest_ok}/{total}",
-                f"{vest_ok/total*100:.0f}%")
+    # Use the most recent reading for current compliance
+    latest = data[0]
+    col1, col2, col3 = st.columns(3)
+    col1.metric("People Detected", latest["person_count"])
+    col2.metric("Helmets Detected", latest["helmet_count"])
+    col3.metric("Active Violations", latest["violations"], delta_color="inverse")
 
 # ── Send command to Pi ─────────────────────────────────────────────
 st.subheader("🎛️ Send Command to Pi")
 col_a, col_b = st.columns([2, 1])
 with col_a:
-    threshold = st.slider("Gas alert threshold (ppm)", 100, 800, 300, 50)
+    command_input = st.selectbox("Action", ["reset_alarms", "reboot_camera", "update_thresholds"])
 with col_b:
-    if st.button("📤 Send to Pi"):
+    if st.button("📤 Send to Pi via MQTT"):
         r = requests.post(
             f"{API_URL}/commands",
-            json={"command": "set_gas_threshold",
-                  "payload": {"threshold_ppm": threshold}},
+            json={"command": command_input,
+                  "payload": {}},
             timeout=3
         )
         if r.status_code == 200:
-            st.success("✅ Command queued!")
+            st.success("✅ Command published to EdgePi!")
+        else:
+            st.error("Failed to send command.")
 
 # ── Alert history ──────────────────────────────────────────────────
 st.subheader("🚨 Recent Alerts")
 if data:
-    alerts = [r for r in data if not r["is_safe"]]
+    alerts = [r for r in data if r["alert"] == True]
     if alerts:
         st.dataframe(
             pd.DataFrame([{
-                "Time":   r["timestamp"],
-                "Level":  r["alert_level"],
-                "Issues": " | ".join(r["alert_reasons"])
+                "Time":       r["timestamp"],
+                "Vibration":  r["vibration"],
+                "Violations": r["violations"],
+                "Temp/Hum":   f"{r['temperature']}C / {r['humidity']}%"
             } for r in alerts]),
             hide_index=True,
             use_container_width=True
