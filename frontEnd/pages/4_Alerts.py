@@ -13,8 +13,10 @@ from datetime import datetime
 
 from utils.api_client import health_check, get_latest_readings
 from utils.styles import CUSTOM_CSS, COLORS, PLOTLY_LAYOUT
+from utils.auth import require_admin, sidebar_user_info
 
 st.set_page_config(page_title="Alert Log — Safety Monitor", page_icon="🚨", layout="wide")
+require_admin()
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 st_autorefresh(interval=5_000, key="alerts_refresh")
 
@@ -22,10 +24,12 @@ st_autorefresh(interval=5_000, key="alerts_refresh")
 with st.sidebar:
     st.markdown("## Safety Monitor")
     st.markdown("---")
-    st.page_link("app.py",                label="🏠 Live Overview")
-    st.page_link("pages/1_Analytics.py",  label="📈 Analytics")
-    st.page_link("pages/2_Alerts.py",     label="🚨 Alert Log")
-    st.page_link("pages/3_Control.py",    label="🎛️  Control Panel")
+    st.page_link("app.py",                        label="🏠 Home")
+    st.page_link("pages/1_Staff_View.py",          label="👷 Staff View")
+    st.page_link("pages/2_Admin_View.py",          label="🔐 Admin View")
+    st.page_link("pages/3_Analytics.py",           label="📈 Analytics")
+    st.page_link("pages/4_Alerts.py",              label="🚨 Alert Log")
+    st.page_link("pages/5_Control.py",             label="🎛️  Control Panel")
     st.markdown("---")
     limit = st.select_slider("Data window", options=[30, 60, 120, 200], value=120)
     level_filter = st.multiselect(
@@ -33,6 +37,7 @@ with st.sidebar:
         options=["SAFE", "WARNING", "DANGER"],
         default=["WARNING", "DANGER"],
     )
+    sidebar_user_info()
     online = health_check()
     status_txt = "online" if online else "offline"
     color_cls  = "conn-online" if online else "conn-offline"
@@ -136,9 +141,11 @@ if not unsafe_df.empty and "alert_reasons" in unsafe_df.columns:
     reasons_flat = []
     for reasons_raw in unsafe_df["alert_reasons"].dropna():
         try:
-            reasons = ast.literal_eval(reasons_raw) if isinstance(reasons_raw, str) else reasons_raw
-            if isinstance(reasons, list):
-                reasons_flat.extend(reasons)
+            if isinstance(reasons_raw, list):
+                reasons_flat.extend(reasons_raw)
+            elif isinstance(reasons_raw, str):
+                parsed = ast.literal_eval(reasons_raw)
+                reasons_flat.extend(parsed if isinstance(parsed, list) else [reasons_raw])
         except Exception:
             reasons_flat.append(str(reasons_raw))
 

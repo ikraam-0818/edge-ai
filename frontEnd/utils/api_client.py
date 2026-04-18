@@ -92,3 +92,27 @@ def send_reading(data: dict) -> Optional[dict]:
         return r.json()
     except Exception:
         return None
+
+
+def get_latest_frame() -> Optional[bytes]:
+    """Fetch the latest JPEG camera frame. Returns bytes or None."""
+    try:
+        r = requests.get(f"{BASE_URL}/frame/latest", timeout=TIMEOUT)
+        if r.status_code == 204:
+            return None
+        r.raise_for_status()
+        return r.content
+    except Exception:
+        return None
+
+
+def get_alert_frame() -> Optional[bytes]:
+    """Fetch the last frame captured during an unsafe/violation event."""
+    try:
+        r = requests.get(f"{BASE_URL}/frame/alert", timeout=TIMEOUT)
+        if r.status_code == 204:
+            return None
+        r.raise_for_status()
+        return r.content
+    except Exception:
+        return None

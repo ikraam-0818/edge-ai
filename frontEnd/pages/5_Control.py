@@ -10,19 +10,24 @@ from datetime import datetime
 
 from utils.api_client import health_check, get_stats, send_command, send_reading
 from utils.styles import CUSTOM_CSS, COLORS
+from utils.auth import require_admin, sidebar_user_info
 
 st.set_page_config(page_title="Control Panel — Safety Monitor", page_icon="🎛️", layout="wide")
+require_admin()
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # ── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## Safety Monitor")
     st.markdown("---")
-    st.page_link("app.py",                label="🏠 Live Overview")
-    st.page_link("pages/1_Analytics.py",  label="📈 Analytics")
-    st.page_link("pages/2_Alerts.py",     label="🚨 Alert Log")
-    st.page_link("pages/3_Control.py",    label="🎛️  Control Panel")
+    st.page_link("app.py",                        label="🏠 Home")
+    st.page_link("pages/1_Staff_View.py",          label="👷 Staff View")
+    st.page_link("pages/2_Admin_View.py",          label="🔐 Admin View")
+    st.page_link("pages/3_Analytics.py",           label="📈 Analytics")
+    st.page_link("pages/4_Alerts.py",              label="🚨 Alert Log")
+    st.page_link("pages/5_Control.py",             label="🎛️  Control Panel")
     st.markdown("---")
+    sidebar_user_info()
     online = health_check()
     if online:
         st.markdown('<span class="conn-online">● Backend online</span>', unsafe_allow_html=True)
@@ -53,6 +58,23 @@ st.markdown("---")
 # ── Quick commands ────────────────────────────────────────────────────────────
 st.markdown("## Quick Commands")
 st.markdown("Send a command to the edge device. Commands are queued and delivered on next poll.")
+
+# Emergency stop — prominent and separate
+st.markdown(
+    '<div style="background:#2d0f0f;border:2px solid #da3633;border-radius:10px;padding:16px 22px;margin-bottom:16px;">'
+    '<span style="color:#f85149;font-size:1.1rem;font-weight:700;">⚠️ Emergency Stop</span>'
+    '<span style="color:#8b949e;font-size:0.9rem;"> — halts all inference and triggers alarm on the edge device</span>'
+    '</div>',
+    unsafe_allow_html=True,
+)
+if st.button("🛑 EMERGENCY STOP", type="primary", use_container_width=False):
+    ok = send_command("EMERGENCY_STOP")
+    if ok:
+        st.error("EMERGENCY STOP sent — edge device halting.")
+    else:
+        st.error("Failed to send command.")
+
+st.markdown("---")
 
 q1, q2, q3, q4 = st.columns(4)
 
@@ -93,33 +115,37 @@ st.markdown("---")
 # ── Threshold configuration ───────────────────────────────────────────────────
 st.markdown("## Threshold Configuration")
 
-left, right = st.columns(2)
+t1, t2, t3 = st.columns(3)
 
-with left:
-    st.markdown("### Gas Alert Threshold (PPM)")
+with t1:
+    st.markdown("### Temperature (°C)")
+    temp_threshold = st.slider(
+        "Temp alert level", min_value=20, max_value=60, value=35, step=1,
+        help="Above this triggers WARNING (FR-5: 35 °C default).",
+    )
+    if st.button("Set Temp Threshold", type="primary", key="btn_temp"):
+        ok = send_command("SET_TEMP_THRESHOLD", {"celsius": temp_threshold})
+        st.success(f"Temp threshold → {temp_threshold} °C.") if ok else st.error("Failed.")
+
+with t2:
+    st.markdown("### Gas Alert (PPM)")
     gas_threshold = st.slider(
         "Gas PPM alert level", min_value=100, max_value=1000, value=300, step=25,
-        help="Readings above this value trigger a WARNING.",
+        help="Above this triggers WARNING.",
     )
-    if st.button("Set Gas Threshold", type="primary"):
+    if st.button("Set Gas Threshold", type="primary", key="btn_gas"):
         ok = send_command("SET_GAS_THRESHOLD", {"ppm": gas_threshold})
-        if ok:
-            st.success(f"Gas threshold set to {gas_threshold} PPM.")
-        else:
-            st.error("Failed.")
+        st.success(f"Gas threshold → {gas_threshold} PPM.") if ok else st.error("Failed.")
 
-with right:
-    st.markdown("### Temperature Alert Threshold (°C)")
-    temp_threshold = st.slider(
-        "Temperature °C alert level", min_value=20, max_value=60, value=40, step=1,
-        help="Readings above this value trigger a WARNING.",
+with t3:
+    st.markdown("### Vibration (g)")
+    vib_threshold = st.slider(
+        "Vibration alert level (g)", min_value=0.5, max_value=5.0, value=1.5, step=0.1,
+        help="Above this triggers WARNING.",
     )
-    if st.button("Set Temp Threshold", type="primary"):
-        ok = send_command("SET_TEMP_THRESHOLD", {"celsius": temp_threshold})
-        if ok:
-            st.success(f"Temp threshold set to {temp_threshold} °C.")
-        else:
-            st.error("Failed.")
+    if st.button("Set Vibration Threshold", type="primary", key="btn_vib"):
+        ok = send_command("SET_VIB_THRESHOLD", {"g": vib_threshold})
+        st.success(f"Vibration threshold → {vib_threshold} g.") if ok else st.error("Failed.")
 
 st.markdown("---")
 

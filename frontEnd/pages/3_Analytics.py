@@ -13,8 +13,10 @@ from datetime import datetime
 
 from utils.api_client import health_check, get_latest_readings
 from utils.styles import CUSTOM_CSS, COLORS, PLOTLY_LAYOUT
+from utils.auth import require_admin, sidebar_user_info
 
 st.set_page_config(page_title="Analytics — Safety Monitor", page_icon="📈", layout="wide")
+require_admin()
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 st_autorefresh(interval=5_000, key="analytics_refresh")
@@ -23,16 +25,19 @@ st_autorefresh(interval=5_000, key="analytics_refresh")
 with st.sidebar:
     st.markdown("## Safety Monitor")
     st.markdown("---")
-    st.page_link("app.py",                label="🏠 Live Overview")
-    st.page_link("pages/1_Analytics.py",  label="📈 Analytics")
-    st.page_link("pages/2_Alerts.py",     label="🚨 Alert Log")
-    st.page_link("pages/3_Control.py",    label="🎛️  Control Panel")
+    st.page_link("app.py",                        label="🏠 Home")
+    st.page_link("pages/1_Staff_View.py",          label="👷 Staff View")
+    st.page_link("pages/2_Admin_View.py",          label="🔐 Admin View")
+    st.page_link("pages/3_Analytics.py",           label="📈 Analytics")
+    st.page_link("pages/4_Alerts.py",              label="🚨 Alert Log")
+    st.page_link("pages/5_Control.py",             label="🎛️  Control Panel")
     st.markdown("---")
     limit = st.select_slider(
         "Data window (readings)",
         options=[30, 60, 90, 120, 200],
         value=120,
     )
+    sidebar_user_info()
     online = health_check()
     if online:
         st.markdown('<span class="conn-online">● Backend online</span>', unsafe_allow_html=True)
@@ -44,7 +49,7 @@ st.markdown("# 📈 Analytics")
 st.markdown("Historical sensor trends and PPE compliance metrics.")
 
 if not online:
-    st.error("Backend offline. Start with `uvicorn cloud.main:app --reload`.")
+    st.error("Backend offline. Start with `uvicorn cloud.app:app --reload`.")
     st.stop()
 
 readings = get_latest_readings(limit=limit)
