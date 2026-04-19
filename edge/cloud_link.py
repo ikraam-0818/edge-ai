@@ -27,4 +27,24 @@ class CloudLink:
         self.client.configureAutoReconnectBackoffTime(1, 32, 20)
         self.client.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
         self.client.configureDrainingFrequency(2)  # Draining: 2 Hz
-        self.client
+        self.client.configureConnectDisconnectTimeout(10)
+        self.client.configureMQTTOperationTimeout(5)
+
+        try:
+            self.client.connect()
+            self.connected = True
+            print("✅ Successfully connected to AWS IoT Core")
+        except Exception as e:
+            print(f"❌ Failed to connect to AWS IoT Core: {e}")
+
+    def publish_telemetry(self, data):
+        """Publishes a JSON payload to the AWS topic."""
+        if not self.connected:
+            return
+
+        try:
+            payload = json.dumps(data)
+            self.client.publish(self.topic, payload, 1)
+            print(f"🚀 Published to {self.topic}: {payload}")
+        except Exception as e:
+            print(f"⚠️ Failed to publish message: {e}")
