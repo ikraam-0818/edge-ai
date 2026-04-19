@@ -2,7 +2,7 @@ from gpiozero import LED, Buzzer
 import time
 
 class ActuatorManager:
-    def __init__(self, red_pin=17, green_pin=27, buzzer_pin=22):
+    def __init__(self, red_pin=23, green_pin=24, buzzer_pin=22):
         """
         Initializes the GPIO outputs for the LEDs and Buzzer on the Raspberry Pi.
         Pins are BCM numbering.

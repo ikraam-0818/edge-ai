@@ -1,3 +1,4 @@
+import os
 import time
 import threading
 from vision import VisionEngine
@@ -115,7 +116,8 @@ def main():
 
     print("Starting Tkinter Dashboard...")
     root   = tk.Tk()
-    engine = VisionEngine(model_path="../models/yolo11n_ncnn_model")
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    engine = VisionEngine(model_path=os.path.join(BASE_DIR, "models/yolo11n_ncnn_model"))
     app    = LocalDashboard(root, engine)
 
     logic_thread = threading.Thread(
