@@ -9,7 +9,7 @@ class CloudLink:
         self.connected = False
         
         # --- UPDATE THESE WITH YOUR AWS DETAILS ---
-        ENDPOINT = "YOUR_AWS_ENDPOINT-ats.iot.us-east-1.amazonaws.com"
+        ENDPOINT = "a1cwlyvzluprga-ats.iot.eu-north-1.amazonaws.com"
         PATH_TO_CERTS = "../certs/" 
         ROOT_CA = PATH_TO_CERTS + "AmazonRootCA1.pem"
         PRIVATE_KEY = PATH_TO_CERTS + "device.key"
