@@ -1,12 +1,12 @@
 import os
 import time
-import threading
+import base64
+import cv2
+import requests
 from vision import VisionEngine
 from sensors import SensorManager
 from actuators import ActuatorManager
 from cloud_link import CloudLink
-from gui import LocalDashboard
-import tkinter as tk
 
 # Safety thresholds
 TEMP_WARNING  = 35.0
@@ -51,7 +51,7 @@ def evaluate_safety(vision_data, env_data, vib_data, gas_data):
     is_safe = alert_level == "SAFE"
     return is_safe, alert_level, reasons
 
-def background_logic_loop(vision, sensors, actuators, cloud_link, app):
+def background_logic_loop(vision, sensors, actuators, cloud_link):
     while True:
         # 1. Read all sensors
         env_data = sensors.read_environment()
@@ -71,17 +71,6 @@ def background_logic_loop(vision, sensors, actuators, cloud_link, app):
             actuators.trigger_alarm()
         else:
             actuators.set_state_safe()
-
-	# Update GUI with sensor data
-        app.update_sensor_display(
-            {
-                "temperature": env_data.get("temperature"),
-                "humidity": env_data.get("humidity"),
-                "gas_detected": gas_data.get("gas_detected"),
-                "vibration_detected": vib_data.get("vibration_detected"),
-            },
-            alert_level
-        )
 
         # 5. Log to console
         print(f"[{alert_level}] Temp: {env_data['temperature']}C | "
@@ -105,30 +94,32 @@ def background_logic_loop(vision, sensors, actuators, cloud_link, app):
         }
         cloud_link.publish_telemetry(payload)
 
+        # 7. Push to local FastAPI server (for the Streamlit Dashboard)
+        try:
+            r = requests.post("http://127.0.0.1:8000/readings", json=payload, timeout=2)
+            if r.status_code == 200:
+                print("✅ Synchronized data to local dashboard")
+        except Exception as e:
+            pass  # Local dashboard is offline, which is fine
+
         time.sleep(2)
 
 def main():
-    print("Initializing Edge AI System...")
+    print("Initializing Headless Edge AI System...")
 
     sensors    = SensorManager()
     actuators  = ActuatorManager()
     cloud_link = CloudLink()
 
-    print("Starting Tkinter Dashboard...")
-    root   = tk.Tk()
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     engine = VisionEngine(model_path=os.path.join(BASE_DIR, "models/yolo11n_ncnn_model"))
-    app    = LocalDashboard(root, engine)
 
-    logic_thread = threading.Thread(
-        target=background_logic_loop,
-        args=(engine, sensors, actuators, cloud_link, app),
-        daemon=True
-    )
-    logic_thread.start()
-
-    root.protocol("WM_DELETE_WINDOW", app.on_closing)
-    root.mainloop()
+    print("🤖 Edge Loop Started (No UI)... Press Ctrl+C to stop.")
+    try:
+        # Run straight on the main thread
+        background_logic_loop(engine, sensors, actuators, cloud_link)
+    except KeyboardInterrupt:
+        print("\nStopping Edge AI system...")
 
 if __name__ == "__main__":
     main()
