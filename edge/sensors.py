@@ -1,35 +1,64 @@
 import time
-import random # Placeholder for real I2C/GPIO reads
+import board
+import adafruit_dht
+from gpiozero import Button
 
 class SensorManager:
     def __init__(self):
-        """
-        Initializes the DHT22 and MPU6050 sensors. 
-        MEMBER 2: Replace the dummy data generation with actual I2C/GPIO logic!
-        """
-        print("SensorManager initialized.")
-        # E.g.: self.dht = adafruit_dht.DHT22(board.D4)
-        
-    def read_environment(self):
-        """Returns Temperature in C and Humidity percentage."""
-        # TODO: Implement real DHT22 bus reading
-        return {
-            "temperature": round(random.uniform(20.0, 45.0), 1),
-            "humidity": round(random.uniform(40.0, 90.0), 1)
-        }
-        
-    def read_vibration(self):
-        """Returns XYZ acceleration from MPU6050."""
-        # TODO: Implement real MPU6050 I2C reading
-        # A simple magnitude check can determine if there's excessive vibration 
-        return {
-            "accel_x": round(random.uniform(-1.0, 1.0), 2),
-            "accel_y": round(random.uniform(-1.0, 1.0), 2),
-            "accel_z": round(random.uniform(9.0, 10.5), 2) # Near 9.8m/s^2 (gravity)
-        }
+        print("Initializing SensorManager...")
+        try:
+            self.dht = adafruit_dht.DHT22(board.D4)
+            self.vibration = Button(17)
+            self.gas = Button(27)
+            print("SensorManager initialized successfully.")
+        except Exception as e:
+            print(f"Warning: Could not initialize sensors. Error: {e}")
+            self.dht = None
+            self.vibration = None
+            self.gas = None
 
-# Mini-test for MEMBER 2
+    def read_environment(self):
+        """Returns Temperature in C and Humidity percentage from DHT22."""
+        try:
+            return {
+                "temperature": self.dht.temperature,
+                "humidity": self.dht.humidity
+            }
+        except RuntimeError as e:
+            print(f"DHT22 read error: {e}")
+            return {"temperature": None, "humidity": None}
+
+    def read_vibration(self):
+        """Returns vibration detected state with debounce to avoid false triggers."""
+        try:
+        # Sample 3 times over 0.1s to confirm real vibration
+            detections = 0
+            for _ in range(3):
+                if self.vibration.is_pressed:
+                    detections += 1
+                time.sleep(0.03)
+            return {
+                "vibration_detected": detections >= 3
+            }
+        except Exception as e:
+            print(f"Vibration read error: {e}")
+            return {"vibration_detected": False}
+
+    def read_gas(self):
+        """Returns gas detected state from MQ135 digital output."""
+        try:
+            return {
+                "gas_detected": self.gas.is_pressed,
+                "ppm": 500.0 if self.gas.is_pressed else 50.0
+            }
+        except Exception as e:
+            print(f"Gas read error: {e}")
+            return {"gas_detected": False, "ppm": 0.0}
+
 if __name__ == "__main__":
     sm = SensorManager()
-    print(sm.read_environment())
-    print(sm.read_vibration())
+    while True:
+        print(sm.read_environment())
+        print(sm.read_vibration())
+        print(sm.read_gas())
+        time.sleep(2)

@@ -1,74 +1,130 @@
 import time
 import threading
-
-# Import the team's modules!
 from vision import VisionEngine
 from sensors import SensorManager
 from actuators import ActuatorManager
 from cloud_link import CloudLink
-
-# If running headlessly (no screen), Tkinter isn't needed.
-# But since we built the GUI, we can import it here.
 from gui import LocalDashboard
 import tkinter as tk
 
-def background_logic_loop(vision, sensors, actuators, cloud_link):
-    """
-    This loop runs in the background of the UI, continuously polling sensors 
-    and enforcing the safety logic.
-    """
+# Safety thresholds
+TEMP_WARNING  = 35.0
+TEMP_DANGER   = 40.0
+GAS_WARNING   = 300.0
+
+def evaluate_safety(vision_data, env_data, vib_data, gas_data):
+    reasons = []
+    alert_level = "SAFE"
+
+    # PPE checks
+    if vision_data.get("no_helmet_violations", 0) > 0:
+        reasons.append("no_helmet")
+        alert_level = "DANGER"
+    elif vision_data.get("person_count", 0) > 0 and vision_data.get("helmet_count", 0) == 0:
+        reasons.append("no_helmet")
+        alert_level = "DANGER"
+
+    # Temperature checks
+    temp = env_data.get("temperature")
+    if temp is not None:
+        if temp >= TEMP_DANGER:
+            reasons.append("high_temperature")
+            alert_level = "DANGER"
+        elif temp >= TEMP_WARNING:
+            reasons.append("temperature_warning")
+            if alert_level == "SAFE":
+                alert_level = "WARNING"
+
+    # Gas check
+    if gas_data.get("gas_detected"):
+        reasons.append("gas_detected")
+        if alert_level == "SAFE":
+            alert_level = "WARNING"
+
+    # Vibration check
+    if vib_data.get("vibration_detected"):
+        reasons.append("vibration_detected")
+        if alert_level == "SAFE":
+            alert_level = "WARNING"
+
+    is_safe = alert_level == "SAFE"
+    return is_safe, alert_level, reasons
+
+def background_logic_loop(vision, sensors, actuators, cloud_link, app):
     while True:
-        # 1. Read Sensors
+        # 1. Read all sensors
         env_data = sensors.read_environment()
         vib_data = sensors.read_vibration()
-        
-        # 2. Get Vision Stats (Assuming vision.process_frame updates an internal state, 
-        # or we pull latest stats if the GUI is driving the camera)
-        # For simplicity, we just aggregate the hardware stats here 
-        # and push everything to AWS every 5 seconds.
-        
-        payload = {
-            "timestamp": int(time.time()),
-            "temperature": env_data["temperature"],
-            "vibration_x": vib_data["accel_x"],
-            # "violations": We grab this from vision engine if decoupled
-        }
-        
-        # 3. Decision Logic 
-        if env_data["temperature"] > 40.0:
-            print(f"HOT TEMPERATURE DETECTED: {env_data['temperature']}C")
+        gas_data = sensors.read_gas()
+
+        # 2. Get latest vision data
+        _, vision_data = vision.process_frame()
+
+        # 3. Evaluate safety
+        is_safe, alert_level, reasons = evaluate_safety(
+            vision_data, env_data, vib_data, gas_data
+        )
+
+        # 4. Trigger actuators
+        if not is_safe:
             actuators.trigger_alarm()
-            
-        # 4. Push to Cloud
+        else:
+            actuators.set_state_safe()
+
+	# Update GUI with sensor data
+        app.update_sensor_display(
+            {
+                "temperature": env_data.get("temperature"),
+                "humidity": env_data.get("humidity"),
+                "gas_detected": gas_data.get("gas_detected"),
+                "vibration_detected": vib_data.get("vibration_detected"),
+            },
+            alert_level
+        )
+
+        # 5. Log to console
+        print(f"[{alert_level}] Temp: {env_data['temperature']}C | "
+              f"Humidity: {env_data['humidity']}% | "
+              f"Gas: {gas_data['gas_detected']} | "
+              f"Vibration: {vib_data['vibration_detected']} | "
+              f"Helmet violations: {vision_data.get('no_helmet_violations', 0)} | "
+              f"Reasons: {reasons}")
+
+        # 6. Publish to cloud
+        payload = {
+            "helmet_detected": vision_data.get("helmet_count", 0) > 0,
+            "vest_detected":   False,
+            "temperature_c":   env_data.get("temperature"),
+            "humidity_pct":    env_data.get("humidity"),
+            "gas_ppm":         gas_data.get("ppm"),
+            "vibration_g":     1.0 if vib_data.get("vibration_detected") else 0.0,
+            "is_safe":         is_safe,
+            "alert_level":     alert_level,
+            "alert_reasons":   reasons,
+        }
         cloud_link.publish_telemetry(payload)
-        
-        time.sleep(5) # Delay for the background loop
+
+        time.sleep(2)
 
 def main():
     print("Initializing Edge AI System...")
-    
-    # Initialize all modules
-    sensors = SensorManager()
-    actuators = ActuatorManager()
+
+    sensors    = SensorManager()
+    actuators  = ActuatorManager()
     cloud_link = CloudLink()
-    
-    # Note: VisionEngine is initialized via the GUI if we use Tkinter
+
     print("Starting Tkinter Dashboard...")
-    root = tk.Tk()
-    
-    # Needs absolute path depending on runtime loc
-    engine = VisionEngine(model_path="../models/yolo11n_ncnn") 
-    app = LocalDashboard(root, engine)
-    
-    # Start the logic thread concurrently with the GUI
+    root   = tk.Tk()
+    engine = VisionEngine(model_path="../models/yolo11n_ncnn_model")
+    app    = LocalDashboard(root, engine)
+
     logic_thread = threading.Thread(
-        target=background_logic_loop, 
-        args=(engine, sensors, actuators, cloud_link),
+        target=background_logic_loop,
+        args=(engine, sensors, actuators, cloud_link, app),
         daemon=True
     )
     logic_thread.start()
-    
-    # Run UI
+
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     root.mainloop()
 

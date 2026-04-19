@@ -99,12 +99,7 @@ if __name__ == "__main__":
             # Print state to console
             print(f"FPS: {fps:.1f} | People: {data['person_count']} | Helmets: {data['helmet_count']} | Violations: {data['no_helmet_violations']}")
             
-            # Show the frame on Mac screen (Will fail headless on Pi unless X11 is forwarded, but good for local MAC dev!)
-            cv2.imshow("Vision Engine Test", frame)
-            
-            # Press 'q' to quit
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+            pass
                 
     except KeyboardInterrupt:
         pass
