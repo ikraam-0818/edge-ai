@@ -97,6 +97,7 @@ try:
         global _latest_frame
         try:
             data = json.loads(message.payload.decode("utf-8"))
+            print(f"MQTT message received: {data}")
 
             # Decode and cache latest camera frame if included
             frame_b64 = data.get("frame_b64")
