@@ -156,7 +156,14 @@ with cam_col:
     st.markdown(badge, unsafe_allow_html=True)
 
     border = "#da3633" if not is_safe else "#238636"
-    if frame:
+    if os.environ.get("DASHBOARD_MODE", "LOCAL") == "CLOUD":
+        st.markdown(
+            '<div class="camera-placeholder">☁️<br><br>'
+            '<strong>Live Feed Disabled (Cloud Mode)</strong><br>'
+            'Monitoring via high-level telemetry and violation snapshots only.</div>',
+            unsafe_allow_html=True,
+        )
+    elif frame:
         st.markdown(f'<div style="border:3px solid {border};border-radius:12px;overflow:hidden;">', unsafe_allow_html=True)
         st.image(frame, caption="Live feed — bounding boxes show PPE detection", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)

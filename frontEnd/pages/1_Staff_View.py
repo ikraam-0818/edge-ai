@@ -247,7 +247,14 @@ with cam_col:
     # Pick border style based on safety status
     wrap_class = "cam-wrap-safe" if is_safe else "cam-wrap-danger"
 
-    if live_frame:
+    if os.environ.get("DASHBOARD_MODE", "LOCAL") == "CLOUD":
+        st.markdown(
+            '<div class="camera-placeholder">☁️<br><br>'
+            '<strong>Live Feed Disabled (Cloud Mode)</strong><br>'
+            'Only critical violation snapshots are synced securely to save bandwidth.</div>',
+            unsafe_allow_html=True,
+        )
+    elif live_frame:
         st.markdown(f'<div class="{wrap_class}">', unsafe_allow_html=True)
         st.image(
             live_frame,
