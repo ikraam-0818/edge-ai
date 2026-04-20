@@ -304,6 +304,7 @@ if readings:
                 st.info(f"No {label} data yet.")
                 return
             fig = go.Figure()
+            r, g, b = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
             fig.add_trace(go.Scatter(
                 x=df["timestamp"], y=df[col],
                 mode="lines+markers",
@@ -311,7 +312,7 @@ if readings:
                 marker=dict(size=4),
                 name=label,
                 fill="tozeroy",
-                fillcolor=color + "1a",
+                fillcolor=f"rgba({r},{g},{b},0.1)",
             ))
             if warn:
                 fig.add_hline(y=warn,   line=dict(color=COLORS["warning"], dash="dash", width=1),

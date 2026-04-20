@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -22,7 +23,8 @@ app.add_middleware(
 )
 
 # ── Database Setup ─────────────────────────────────────────────────
-engine = create_engine("sqlite:///safety_monitor.db", connect_args={"check_same_thread": False})
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "safety_monitor.db")
+engine = create_engine(f"sqlite:///{DB_PATH}", connect_args={"check_same_thread": False})
 Base   = declarative_base()
 Session = sessionmaker(bind=engine)
 
@@ -94,7 +96,7 @@ try:
     mqtt_client = AWSIoTMQTTClient(CLIENT_ID)
 
     def _on_mqtt_message(client, userdata, message):
-        global _latest_frame
+        global _latest_frame, _alert_frame
         try:
             data = json.loads(message.payload.decode("utf-8"))
             print(f"MQTT message received: {data}")
@@ -215,7 +217,7 @@ def get_latest_readings(limit: int = 60):
 @app.post("/readings")
 def post_reading(payload: ReadingPayload):
     """Accept a reading from the edge device or test simulation."""
-    global _latest_frame
+    global _latest_frame, _alert_frame
 
     if payload.frame_b64:
         decoded = base64.b64decode(payload.frame_b64)
