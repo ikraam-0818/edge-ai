@@ -52,6 +52,7 @@ def evaluate_safety(vision_data, env_data, vib_data, gas_data):
     return is_safe, alert_level, reasons
 
 def background_logic_loop(vision, sensors, actuators, cloud_link):
+    loop_count = 0
     while True:
         # 1. Read all sensors
         env_data = sensors.read_environment()
@@ -59,7 +60,7 @@ def background_logic_loop(vision, sensors, actuators, cloud_link):
         gas_data = sensors.read_gas()
 
         # 2. Get latest vision data
-        _, vision_data = vision.process_frame()
+        frame, vision_data = vision.process_frame()
 
         # 3. Evaluate safety
         is_safe, alert_level, reasons = evaluate_safety(
@@ -80,7 +81,12 @@ def background_logic_loop(vision, sensors, actuators, cloud_link):
               f"Helmet violations: {vision_data.get('no_helmet_violations', 0)} | "
               f"Reasons: {reasons}")
 
-        # 6. Publish to cloud
+        # 6. Encode frame as base64 JPEG
+        frame_b64 = None
+        if frame is not None:
+            _, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 60])
+            frame_b64 = __import__("base64").b64encode(buffer).decode("utf-8")
+
         payload = {
             "helmet_detected": vision_data.get("helmet_count", 0) > 0,
             "vest_detected":   False,
@@ -91,18 +97,23 @@ def background_logic_loop(vision, sensors, actuators, cloud_link):
             "is_safe":         is_safe,
             "alert_level":     alert_level,
             "alert_reasons":   reasons,
+            "frame_b64":       frame_b64,
         }
-        cloud_link.publish_telemetry(payload)
 
-        # 7. Push to local FastAPI server (for the Streamlit Dashboard)
+        # 7. Publish to AWS every 10 seconds (every 20 loops at 0.5s interval)
+        if loop_count % 20 == 0:
+            cloud_link.publish_telemetry(payload)
+
+        # 8. Push to local FastAPI every loop for smooth dashboard feed
         try:
             r = requests.post("http://127.0.0.1:8000/readings", json=payload, timeout=2)
             if r.status_code == 200:
                 print("✅ Synchronized data to local dashboard")
-        except Exception as e:
-            pass  # Local dashboard is offline, which is fine
+        except Exception:
+            pass
 
-        time.sleep(2)
+        loop_count += 1
+        time.sleep(0.5)
 
 def main():
     print("Initializing Headless Edge AI System...")
