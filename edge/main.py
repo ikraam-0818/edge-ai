@@ -18,11 +18,12 @@ def evaluate_safety(vision_data, env_data, vib_data, gas_data):
     alert_level = "SAFE"
 
     # PPE checks
-    if vision_data.get("no_helmet_violations", 0) > 0:
+    if vision_data.get("person_count", 0) > 0 and vision_data.get("helmet_count", 0) == 0:
         reasons.append("no_helmet")
         alert_level = "DANGER"
-    elif vision_data.get("person_count", 0) > 0 and vision_data.get("helmet_count", 0) == 0:
-        reasons.append("no_helmet")
+        
+    if vision_data.get("person_count", 0) > 0 and vision_data.get("vest_count", 0) == 0:
+        reasons.append("no_vest")
         alert_level = "DANGER"
 
     # Temperature checks
@@ -73,12 +74,11 @@ def background_logic_loop(vision, sensors, actuators, cloud_link):
         else:
             actuators.set_state_safe()
 
-        # 5. Log to console
         print(f"[{alert_level}] Temp: {env_data['temperature']}C | "
               f"Humidity: {env_data['humidity']}% | "
               f"Gas: {gas_data['gas_detected']} | "
               f"Vibration: {vib_data['vibration_detected']} | "
-              f"Helmet violations: {vision_data.get('no_helmet_violations', 0)} | "
+              f"Vests: {vision_data.get('vest_count', 0)} | "
               f"Reasons: {reasons}")
 
         # 6. Encode frame as base64 JPEG
@@ -89,7 +89,7 @@ def background_logic_loop(vision, sensors, actuators, cloud_link):
 
         payload = {
             "helmet_detected": vision_data.get("helmet_count", 0) > 0,
-            "vest_detected":   False,
+            "vest_detected":   vision_data.get("vest_count", 0) > 0,
             "temperature_c":   env_data.get("temperature"),
             "humidity_pct":    env_data.get("humidity"),
             "gas_ppm":         gas_data.get("ppm"),

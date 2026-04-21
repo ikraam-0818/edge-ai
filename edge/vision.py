@@ -48,13 +48,13 @@ class VisionEngine:
 
         # Run inference
         # Setting conf=0.5 to filter out weak detections
-        # Filtering for Specific Classes: 0 (helmet), 6 (Person), 7 (no_helmet)
-        results = self.model(frame, conf=0.5, classes=[0, 6, 7], verbose=False)[0]
+        # Filtering for Specific Classes: 0 (helmet), 2 (vest), 6 (Person)
+        results = self.model(frame, conf=0.5, classes=[0, 2, 6], verbose=False)[0]
 
         detections = {
             "helmet_count": 0,
-            "person_count": 0,
-            "no_helmet_violations": 0
+            "vest_count": 0,
+            "person_count": 0
         }
 
         # Parse the results
@@ -64,10 +64,10 @@ class VisionEngine:
             
             if class_name == "helmet":
                 detections["helmet_count"] += 1
+            elif class_name == "vest":
+                detections["vest_count"] += 1
             elif class_name == "Person":
                 detections["person_count"] += 1
-            elif class_name == "no_helmet":
-                detections["no_helmet_violations"] += 1
 
         # Optionally draw bounding boxes on the frame for debugging
         annotated_frame = results.plot()
@@ -97,7 +97,7 @@ if __name__ == "__main__":
             fps = 1.0 / (time.time() - start_time)
             
             # Print state to console
-            print(f"FPS: {fps:.1f} | People: {data['person_count']} | Helmets: {data['helmet_count']} | Violations: {data['no_helmet_violations']}")
+            print(f"FPS: {fps:.1f} | People: {data['person_count']} | Helmets: {data['helmet_count']} | Vests: {data['vest_count']}")
             
             pass
                 
