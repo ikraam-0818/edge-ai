@@ -15,21 +15,29 @@ from utils.api_client import health_check, get_latest_readings
 from utils.styles import CUSTOM_CSS, COLORS, PLOTLY_LAYOUT
 from utils.auth import require_admin, sidebar_user_info
 
-st.set_page_config(page_title="Alert Log — Safety Monitor", page_icon="🚨", layout="wide")
+st.set_page_config(page_title="Alert Log — Safety Monitor", layout="wide")
 require_admin()
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 st_autorefresh(interval=5_000, key="alerts_refresh")
 
 # ── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## Safety Monitor")
+    st.markdown("""
+    <div style="display:flex;align-items:center;gap:10px;padding:4px 0 16px;">
+        <img src="https://img.icons8.com/color/96/hard-hat.png" width="36"/>
+        <div>
+            <div style="font-weight:800;font-size:0.95rem;color:#e8edf5;letter-spacing:-0.3px;">Safety Monitor</div>
+            <div style="font-size:0.7rem;color:#4a6080;font-weight:600;">Edge AI System</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     st.markdown("---")
-    st.page_link("app.py",                        label="🏠 Home")
-    st.page_link("pages/1_Staff_View.py",          label="👷 Staff View")
-    st.page_link("pages/2_Admin_View.py",          label="🔐 Admin View")
-    st.page_link("pages/3_Analytics.py",           label="📈 Analytics")
-    st.page_link("pages/4_Alerts.py",              label="🚨 Alert Log")
-    st.page_link("pages/5_Control.py",             label="🎛️  Control Panel")
+    st.markdown('<div style="font-size:0.65rem;font-weight:700;color:#4a6080;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Navigation</div>', unsafe_allow_html=True)
+    st.page_link("pages/1_Staff_View.py", label="Live View")
+    st.page_link("pages/2_Admin_View.py", label="Admin Dashboard")
+    st.page_link("pages/3_Analytics.py",  label="Analytics")
+    st.page_link("pages/4_Alerts.py",     label="Alert Log")
+    st.page_link("pages/5_Control.py",    label="Control Panel")
     st.markdown("---")
     limit = st.select_slider("Data window", options=[30, 60, 120, 200], value=120)
     level_filter = st.multiselect(
@@ -39,12 +47,16 @@ with st.sidebar:
     )
     sidebar_user_info()
     online = health_check()
-    status_txt = "online" if online else "offline"
-    color_cls  = "conn-online" if online else "conn-offline"
-    st.markdown(f'<span class="{color_cls}">● Backend {status_txt}</span>', unsafe_allow_html=True)
-    st.markdown(f"*{datetime.now().strftime('%H:%M:%S')}*")
+    conn_cls = "conn-online" if online else "conn-offline"
+    conn_dot = "conn-dot-on" if online else ""
+    st.markdown(
+        f'<div class="{conn_cls}"><span class="conn-dot {conn_dot}"></span>'
+        f'Backend {"online" if online else "offline"}</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(f'<div style="font-size:0.72rem;color:#4a6080;margin-top:6px;">Updated {datetime.now().strftime("%H:%M:%S")}</div>', unsafe_allow_html=True)
 
-st.markdown("# 🚨 Alert Log")
+st.markdown("# Alert Log")
 st.markdown("Filterable history of safety events.")
 
 if not online:
@@ -122,7 +134,7 @@ else:
     # Export
     csv = df_display.to_csv(index=False).encode("utf-8")
     st.download_button(
-        label="⬇️  Download as CSV",
+        label="Download as CSV",
         data=csv,
         file_name=f"safety_alerts_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
         mime="text/csv",

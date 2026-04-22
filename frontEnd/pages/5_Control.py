@@ -12,30 +12,41 @@ from utils.api_client import health_check, get_stats, send_command, send_reading
 from utils.styles import CUSTOM_CSS, COLORS
 from utils.auth import require_admin, sidebar_user_info
 
-st.set_page_config(page_title="Control Panel — Safety Monitor", page_icon="🎛️", layout="wide")
+st.set_page_config(page_title="Control Panel — Safety Monitor", layout="wide")
 require_admin()
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # ── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## Safety Monitor")
+    st.markdown("""
+    <div style="display:flex;align-items:center;gap:10px;padding:4px 0 16px;">
+        <img src="https://img.icons8.com/color/96/hard-hat.png" width="36"/>
+        <div>
+            <div style="font-weight:800;font-size:0.95rem;color:#e8edf5;letter-spacing:-0.3px;">Safety Monitor</div>
+            <div style="font-size:0.7rem;color:#4a6080;font-weight:600;">Edge AI System</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     st.markdown("---")
-    st.page_link("app.py",                        label="🏠 Home")
-    st.page_link("pages/1_Staff_View.py",          label="👷 Staff View")
-    st.page_link("pages/2_Admin_View.py",          label="🔐 Admin View")
-    st.page_link("pages/3_Analytics.py",           label="📈 Analytics")
-    st.page_link("pages/4_Alerts.py",              label="🚨 Alert Log")
-    st.page_link("pages/5_Control.py",             label="🎛️  Control Panel")
+    st.markdown('<div style="font-size:0.65rem;font-weight:700;color:#4a6080;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Navigation</div>', unsafe_allow_html=True)
+    st.page_link("pages/1_Staff_View.py", label="Live View")
+    st.page_link("pages/2_Admin_View.py", label="Admin Dashboard")
+    st.page_link("pages/3_Analytics.py",  label="Analytics")
+    st.page_link("pages/4_Alerts.py",     label="Alert Log")
+    st.page_link("pages/5_Control.py",    label="Control Panel")
     st.markdown("---")
     sidebar_user_info()
     online = health_check()
-    if online:
-        st.markdown('<span class="conn-online">● Backend online</span>', unsafe_allow_html=True)
-    else:
-        st.markdown('<span class="conn-offline">● Backend offline</span>', unsafe_allow_html=True)
-    st.markdown(f"*{datetime.now().strftime('%H:%M:%S')}*")
+    conn_cls = "conn-online" if online else "conn-offline"
+    conn_dot = "conn-dot-on" if online else ""
+    st.markdown(
+        f'<div class="{conn_cls}"><span class="conn-dot {conn_dot}"></span>'
+        f'Backend {"online" if online else "offline"}</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(f'<div style="font-size:0.72rem;color:#4a6080;margin-top:6px;">Updated {datetime.now().strftime("%H:%M:%S")}</div>', unsafe_allow_html=True)
 
-st.markdown("# 🎛️ Control Panel")
+st.markdown("# Control Panel")
 st.markdown("Send commands to the edge device and manage system configuration.")
 
 if not online:
@@ -62,12 +73,12 @@ st.markdown("Send a command to the edge device. Commands are queued and delivere
 # Emergency stop — prominent and separate
 st.markdown(
     '<div style="background:#2d0f0f;border:2px solid #da3633;border-radius:10px;padding:16px 22px;margin-bottom:16px;">'
-    '<span style="color:#f85149;font-size:1.1rem;font-weight:700;">⚠️ Emergency Stop</span>'
+    '<span style="color:#f85149;font-size:1.1rem;font-weight:700;">Emergency Stop</span>'
     '<span style="color:#8b949e;font-size:0.9rem;"> — halts all inference and triggers alarm on the edge device</span>'
     '</div>',
     unsafe_allow_html=True,
 )
-if st.button("🛑 EMERGENCY STOP", type="primary", use_container_width=False):
+if st.button("EMERGENCY STOP", type="primary", use_container_width=False):
     ok = send_command("EMERGENCY_STOP")
     if ok:
         st.error("EMERGENCY STOP sent — edge device halting.")
@@ -79,7 +90,7 @@ st.markdown("---")
 q1, q2, q3, q4 = st.columns(4)
 
 with q1:
-    if st.button("🔔 Test Alarm", use_container_width=True):
+    if st.button("Test Alarm", use_container_width=True):
         ok = send_command("TEST_ALARM", {"duration_s": 3})
         if ok:
             st.success("Command queued: TEST_ALARM")
@@ -87,7 +98,7 @@ with q1:
             st.error("Failed to send.")
 
 with q2:
-    if st.button("✅ Reset Safe", use_container_width=True):
+    if st.button("Reset Safe", use_container_width=True):
         ok = send_command("RESET_SAFE")
         if ok:
             st.success("Command queued: RESET_SAFE")
@@ -95,7 +106,7 @@ with q2:
             st.error("Failed to send.")
 
 with q3:
-    if st.button("📸 Capture Frame", use_container_width=True):
+    if st.button("Capture Frame", use_container_width=True):
         ok = send_command("CAPTURE_FRAME")
         if ok:
             st.success("Command queued: CAPTURE_FRAME")
@@ -103,7 +114,7 @@ with q3:
             st.error("Failed to send.")
 
 with q4:
-    if st.button("♻️ Restart Vision", use_container_width=True):
+    if st.button("Restart Vision", use_container_width=True):
         ok = send_command("RESTART_VISION")
         if ok:
             st.success("Command queued: RESTART_VISION")
