@@ -22,26 +22,49 @@ if is_logged_in():
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
 [data-testid="stSidebar"],
 [data-testid="stSidebarNavItems"],
 #MainMenu, footer, header { display: none !important; }
 
 html, body, [data-testid="stAppViewContainer"] {
-    background: #080c14;
-    color: #e8edf5;
-    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background: #0a0a0a;
+    color: #f0f0f0;
+    font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* Subtle grid background */
+/* Top amber line */
 [data-testid="stAppViewContainer"]::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #f59e0b 0%, transparent 60%);
+    z-index: 100;
+}
+
+/* Scan-line texture */
+[data-testid="stAppViewContainer"]::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+}
+
+/* Subtle grid */
+[data-testid="stMain"]::before {
     content: '';
     position: fixed;
     inset: 0;
     background-image:
-        linear-gradient(rgba(77,142,247,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(77,142,247,0.03) 1px, transparent 1px);
+        linear-gradient(rgba(245,158,11,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,158,11,0.025) 1px, transparent 1px);
     background-size: 48px 48px;
     pointer-events: none;
     z-index: 0;
@@ -50,186 +73,207 @@ html, body, [data-testid="stAppViewContainer"] {
 .block-container {
     position: relative;
     z-index: 1;
-    padding-top: 4rem !important;
-    max-width: 480px !important;
+    padding-top: 5rem !important;
+    max-width: 440px !important;
 }
 
-/* ── Login card ── */
-.login-header {
-    text-align: center;
-    margin-bottom: 36px;
-}
+/* Header */
+.login-header { text-align: center; margin-bottom: 32px; }
 .login-badge {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: rgba(77,142,247,0.1);
-    border: 1px solid rgba(77,142,247,0.25);
-    border-radius: 99px;
-    padding: 5px 16px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #4d8ef7;
-    letter-spacing: 0.1em;
+    gap: 7px;
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 2px;
+    padding: 4px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 500;
+    color: #f59e0b;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
 }
 .login-badge-dot {
-    width: 6px; height: 6px;
+    width: 5px; height: 5px;
     border-radius: 50%;
-    background: #4d8ef7;
-    box-shadow: 0 0 6px #4d8ef7;
+    background: #f59e0b;
+    box-shadow: 0 0 6px #f59e0b;
+    animation: blink 1.4s ease-in-out infinite;
 }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+
 .login-title {
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: #e8edf5;
-    letter-spacing: -0.5px;
-    line-height: 1.2;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #f0f0f0;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.1;
     margin-bottom: 8px;
 }
 .login-sub {
-    font-size: 0.85rem;
-    color: #8fa3c0;
-    line-height: 1.5;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: #555;
+    line-height: 1.6;
+    letter-spacing: 0.04em;
 }
 
-/* ── Form section ── */
+/* Form card */
 .form-section {
-    background: #0f1828;
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 18px;
-    padding: 32px 36px 28px;
-    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
-    margin-bottom: 16px;
-}
-.form-label {
-    color: #4a6080;
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    margin-bottom: 6px;
-}
-.divider-line {
-    border: none;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    margin: 22px 0;
+    background: #111111;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-top: 2px solid #f59e0b;
+    border-radius: 6px;
+    padding: 28px 32px 24px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+    margin-bottom: 14px;
+    position: relative;
 }
 
-/* ── Streamlit overrides ── */
+/* Streamlit input overrides */
 [data-testid="stTextInput"] input {
-    background: #0a1020 !important;
-    border: 1px solid rgba(255,255,255,0.09) !important;
-    border-radius: 10px !important;
-    color: #e8edf5 !important;
-    font-size: 0.92rem !important;
-    padding: 10px 14px !important;
+    background: #0a0a0a !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 4px !important;
+    color: #f0f0f0 !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 0.85rem !important;
+    padding: 10px 12px !important;
     transition: border-color 0.2s, box-shadow 0.2s !important;
 }
 [data-testid="stTextInput"] input:focus {
-    border-color: #4d8ef7 !important;
-    box-shadow: 0 0 0 3px rgba(77,142,247,0.12) !important;
+    border-color: #f59e0b !important;
+    box-shadow: 0 0 0 2px rgba(245,158,11,0.1) !important;
 }
 [data-testid="stTextInput"] label {
-    color: #4a6080 !important;
-    font-size: 0.68rem !important;
-    font-weight: 700 !important;
+    color: #555 !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 0.6rem !important;
+    font-weight: 500 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.1em !important;
+    letter-spacing: 0.14em !important;
 }
 button[kind="primary"] {
-    background: linear-gradient(135deg, #1d4ed8, #2563eb) !important;
+    background: #f59e0b !important;
+    color: #000 !important;
     border: none !important;
-    border-radius: 10px !important;
+    border-radius: 4px !important;
+    font-family: 'Rajdhani', sans-serif !important;
     font-weight: 700 !important;
     font-size: 0.95rem !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
     padding: 12px !important;
     width: 100% !important;
-    box-shadow: 0 4px 16px rgba(37,99,235,0.35) !important;
     transition: opacity 0.2s, transform 0.1s !important;
-    letter-spacing: 0.02em !important;
 }
-button[kind="primary"]:hover {
-    opacity: 0.88 !important;
-    transform: translateY(-1px) !important;
-}
+button[kind="primary"]:hover { opacity: 0.88 !important; transform: translateY(-1px) !important; }
 
-/* ── Credentials hint ── */
+/* Credentials hint */
 .creds-card {
-    background: #0a1020;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    padding: 18px 20px;
+    background: #0d0d0d;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 4px;
+    padding: 14px 16px;
 }
 .creds-title {
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: #4a6080;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 500;
+    color: #444;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    margin-bottom: 14px;
+    letter-spacing: 0.16em;
+    margin-bottom: 12px;
 }
 .creds-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 8px;
-    font-size: 0.82rem;
+    margin-bottom: 7px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
 }
 .creds-row:last-child { margin-bottom: 0; }
 .role-tag {
     display: inline-block;
-    border-radius: 6px;
-    padding: 2px 9px;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
+    border-radius: 2px;
+    padding: 1px 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     flex-shrink: 0;
 }
-.role-admin { background: rgba(77,142,247,0.12); color: #4d8ef7; border: 1px solid rgba(77,142,247,0.25); }
-.role-staff { background: rgba(52,211,153,0.1); color: #34d399; border: 1px solid rgba(52,211,153,0.2); }
-.creds-text { color: #8fa3c0; }
-.creds-text strong { color: #c8d5e8; font-weight: 600; }
+.role-admin { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.2); }
+.role-staff { background: rgba(34,197,94,0.08); color: #22c55e; border: 1px solid rgba(34,197,94,0.15); }
+.creds-text { color: #555; }
+.creds-text strong { color: #888; font-weight: 500; }
 
 @media (max-width: 480px) {
     .block-container { padding-top: 2rem !important; max-width: 100% !important; }
-    .form-section { padding: 24px 20px 20px !important; border-radius: 14px !important; }
-    .login-title { font-size: 1.4rem !important; }
+    .form-section { padding: 20px 16px 18px !important; }
+    .login-title { font-size: 1.7rem !important; }
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Header ────────────────────────────────────────────────────────────────────
+# ── Header ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="login-header">
     <div><span class="login-badge"><span class="login-badge-dot"></span>Edge AI System</span></div>
-    <div class="login-title">Construction Safety<br>Monitor</div>
-    <div class="login-sub">Real-time PPE detection &amp; environmental monitoring<br>powered by Edge AI</div>
+    <div class="login-title">Construction<br>Safety Monitor</div>
+    <div class="login-sub">Real-time PPE detection &amp; environmental monitoring<br>powered by edge inference</div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Form ──────────────────────────────────────────────────────────────────────
+# ── Form ───────────────────────────────────────────────────────────────────
 st.markdown('<div class="form-section">', unsafe_allow_html=True)
 
 with st.form("login_form", clear_on_submit=False):
-    username = st.text_input("Username", placeholder="Enter your username")
-    password = st.text_input("Password", placeholder="Enter your password", type="password")
-    st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
-    submitted = st.form_submit_button("Sign In", type="primary", use_container_width=True)
+    username = st.text_input("Username", placeholder="enter username")
+    password = st.text_input("Password", placeholder="enter password", type="password")
+    st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+    submitted = st.form_submit_button("Authenticate", type="primary", use_container_width=True)
 
     if submitted:
         if not username.strip():
-            st.error("Please enter your username.")
+            st.error("Username required.")
         elif not password:
-            st.error("Please enter your password.")
+            st.error("Password required.")
         else:
             success, error_msg = login(username, password)
             if success:
-                st.success("Login successful! Redirecting…")
+                st.success("Access granted. Redirecting…")
                 st.rerun()
             else:
-                st.error(f"Login failed: {error_msg}")
+                st.error(f"Access denied — {error_msg}")
 
 st.markdown("</div>", unsafe_allow_html=True)
 
+# ── Credentials hint ───────────────────────────────────────────────────────
+st.markdown("""
+<div class="creds-card">
+    <div class="creds-title">// Demo credentials</div>
+    <div class="creds-row">
+        <span class="role-tag role-admin">Admin</span>
+        <span class="creds-text"><strong>admin</strong> / admin123</span>
+    </div>
+    <div class="creds-row">
+        <span class="role-tag role-admin">Admin</span>
+        <span class="creds-text"><strong>manager</strong> / manager123</span>
+    </div>
+    <div class="creds-row">
+        <span class="role-tag role-staff">Staff</span>
+        <span class="creds-text"><strong>staff</strong> / staff123</span>
+    </div>
+    <div class="creds-row">
+        <span class="role-tag role-staff">Staff</span>
+        <span class="creds-text"><strong>worker</strong> / worker123</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
