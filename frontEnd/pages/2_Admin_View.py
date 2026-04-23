@@ -357,7 +357,7 @@ st.markdown(
     '<div style="background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.2);'
     'border-left:4px solid #f87171;border-radius:12px;padding:14px 20px;margin-bottom:18px;">'
     '<span style="color:#f87171;font-size:0.9rem;font-weight:700;">Emergency Stop</span>'
-    '<span style="color:#8fa3c0;font-size:0.82rem;"> — immediately halts all inference and triggers alarm on edge device</span>'
+    '<span style="color:#8b949e;font-size:0.9rem;"> — halts all inference on the edge device</span>'
     '</div>',
     unsafe_allow_html=True,
 )

@@ -74,7 +74,7 @@ st.markdown("Send a command to the edge device. Commands are queued and delivere
 st.markdown(
     '<div style="background:#2d0f0f;border:2px solid #da3633;border-radius:10px;padding:16px 22px;margin-bottom:16px;">'
     '<span style="color:#f85149;font-size:1.1rem;font-weight:700;">Emergency Stop</span>'
-    '<span style="color:#8b949e;font-size:0.9rem;"> — halts all inference and triggers alarm on the edge device</span>'
+    '<span style="color:#8b949e;font-size:0.9rem;"> — halts all inference on the edge device</span>'
     '</div>',
     unsafe_allow_html=True,
 )
@@ -87,17 +87,9 @@ if st.button("EMERGENCY STOP", type="primary", use_container_width=False):
 
 st.markdown("---")
 
-q1, q2, q3, q4 = st.columns(4)
+q1, q2, q3 = st.columns(3)
 
 with q1:
-    if st.button("Test Alarm", use_container_width=True):
-        ok = send_command("TEST_ALARM", {"duration_s": 3})
-        if ok:
-            st.success("Command queued: TEST_ALARM")
-        else:
-            st.error("Failed to send.")
-
-with q2:
     if st.button("Reset Safe", use_container_width=True):
         ok = send_command("RESET_SAFE")
         if ok:
@@ -105,7 +97,7 @@ with q2:
         else:
             st.error("Failed to send.")
 
-with q3:
+with q2:
     if st.button("Capture Frame", use_container_width=True):
         ok = send_command("CAPTURE_FRAME")
         if ok:
@@ -113,7 +105,7 @@ with q3:
         else:
             st.error("Failed to send.")
 
-with q4:
+with q3:
     if st.button("Restart Vision", use_container_width=True):
         ok = send_command("RESTART_VISION")
         if ok:
@@ -207,7 +199,7 @@ with st.form("simulate"):
     )
 
     btn_col1, btn_col2 = st.columns(2)
-    send_sim    = btn_col1.form_submit_button("Inject Reading",          type="primary", use_container_width=True)
+    send_sim    = btn_col1.form_submit_button("Inject Reading",           type="primary", use_container_width=True)
     send_random = btn_col2.form_submit_button("Inject 10 Random Readings", use_container_width=True)
 
 if send_sim:
