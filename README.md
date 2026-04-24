@@ -198,7 +198,7 @@ Designed for on-site workers — **read-only**.
 | Status Banner | SAFE / WARNING / DANGER with timestamp |
 | Violation Alert | Red alert box listing missing PPE when unsafe |
 | Live Camera Feed | Real-time frame from edge device with YOLO bounding boxes; **green border** when safe, **pulsing red border** when violated |
-| PPE Compliance | Helmet ✅/❌ and Safety Vest ✅/❌ badges |
+| PPE Compliance | Helmet  and Safety Vest  badges |
 | Latest Violation Capture | Saved frame from the moment a violation was detected |
 | Environmental Sensors | Temperature, Humidity, Gas (PPM), Vibration with colour-coded thresholds |
 
