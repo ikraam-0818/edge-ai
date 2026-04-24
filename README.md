@@ -217,9 +217,9 @@ Full access for supervisors.
 ### Admin-Only Pages
 | Page | Description |
 |---|---|
-| 📈 Analytics | Historical PPE compliance, sensor stats, alert distribution, correlation heatmap |
-| 🚨 Alert Log | Filterable event history with CSV export and alert reasons breakdown |
-| 🎛️ Control Panel | Emergency Stop, device commands, threshold sliders (Temp/Gas/Vibration), simulation tools |
+| Analytics | Historical PPE compliance, sensor stats, alert distribution, correlation heatmap |
+| Alert Log | Filterable event history with CSV export and alert reasons breakdown |
+| Control Panel | Emergency Stop, device commands, threshold sliders (Temp/Gas/Vibration), simulation tools |
 
 ---
 
@@ -310,18 +310,18 @@ Raspberry Pi
 
 | FR | Requirement | Status |
 |---|---|---|
-| FR-1 | Real-time detection of Person, Helmet, Safety Vest (≥70% confidence) | ✅ VisionEngine |
-| FR-2 | PPE violation identification and labelling | ✅ Bounding boxes + PPE badges |
-| FR-3 | Continuous sensor data monitoring (temp, gas, vibration) | ✅ SensorManager |
-| FR-4 | Sensor threshold evaluation | ✅ MainController + Control Panel |
-| FR-5 | Sensor fusion (PPE + temp > 35°C → alert) | ✅ MainController, 35°C default |
-| FR-6 | On-screen safety alert generation | ✅ Status banner + violation box |
-| FR-7 | Edge AI inference without internet | ✅ NCNN local inference |
-| FR-8 | Cloud telemetry every 10 seconds | ✅ CloudLink MQTT |
-| FR-9 | Supervisor dashboard access | ✅ Admin View |
-| FR-10 | Remote Emergency Stop command | ✅ Control Panel + Admin View |
-| FR-11 | Threshold configuration for all sensors | ✅ Temp, Gas, Vibration sliders |
-| FR-12 | System maintenance and AI model update | ✅ Control Panel commands |
+| FR-1 | Real-time detection of Person, Helmet, Safety Vest (≥70% confidence) |  VisionEngine |
+| FR-2 | PPE violation identification and labelling |  Bounding boxes + PPE badges |
+| FR-3 | Continuous sensor data monitoring (temp, gas, vibration) |  SensorManager |
+| FR-4 | Sensor threshold evaluation |  MainController + Control Panel |
+| FR-5 | Sensor fusion (PPE + temp > 35°C → alert) |  MainController, 35°C default |
+| FR-6 | On-screen safety alert generation |  Status banner + violation box |
+| FR-7 | Edge AI inference without internet |  NCNN local inference |
+| FR-8 | Cloud telemetry every 10 seconds |  CloudLink MQTT |
+| FR-9 | Supervisor dashboard access |  Admin View |
+| FR-10 | Remote Emergency Stop command |  Control Panel + Admin View |
+| FR-11 | Threshold configuration for all sensors |  Temp, Gas, Vibration sliders |
+| FR-12 | System maintenance and AI model update |  Control Panel commands |
 
 ---
 
