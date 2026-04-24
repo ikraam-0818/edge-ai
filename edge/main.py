@@ -112,7 +112,7 @@ def main_loop(sensors, actuators, cloud_link):
             "temperature_c":   env_data.get("temperature"),
             "humidity_pct":    env_data.get("humidity"),
             "gas_ppm":         gas_data.get("ppm"),
-            "vibration_g":     1.0 if vib_data.get("vibration_detected") else 0.0,
+            "vibration_g":     None,
             "is_safe":         is_safe,
             "alert_level":     alert_level,
             "alert_reasons":   reasons,
