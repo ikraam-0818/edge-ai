@@ -220,13 +220,27 @@ with ppe_col:
             f'</div>'
         )
 
+    def _detection_card(label, detected):
+        color   = COLORS["danger"] if detected else COLORS["safe"]
+        display = "DETECTED" if detected else "NORMAL"
+        return (
+            f'<div class="info-card">'
+            f'<div class="label">{label}</div>'
+            f'<div class="value" style="color:{color}">{display}</div>'
+            f'</div>'
+        )
+
+    admin_reasons = latest.get("alert_reasons", [])
+    gas_detected  = "gas_detected" in admin_reasons
+    vib_detected  = "vibration_detected" in admin_reasons
+
     a, b = st.columns(2)
     with a:
-        st.markdown(_card("Temperature", temp, "°C",  35,  40),  unsafe_allow_html=True)
-        st.markdown(_card("Gas",         gas,  " ppm", 300, 500), unsafe_allow_html=True)
+        st.markdown(_card("Temperature", temp, "°C", 35, 40),    unsafe_allow_html=True)
+        st.markdown(_detection_card("Gas", gas_detected),         unsafe_allow_html=True)
     with b:
-        st.markdown(_card("Humidity",    hum,  "%",   85,  None), unsafe_allow_html=True)
-        st.markdown(_card("Vibration",   vib,  " g",  1.5, 2.5), unsafe_allow_html=True)
+        st.markdown(_card("Humidity", hum, "%", 85, None),        unsafe_allow_html=True)
+        st.markdown(_detection_card("Vibration", vib_detected),   unsafe_allow_html=True)
 
 # ── Section: Compliance Chart ─────────────────────────────────────────────────
 st.markdown("""
@@ -313,8 +327,10 @@ if readings:
 
     _trend(tab1, "temperature_c", "Temperature (°C)", COLORS["orange"],  35,  40)
     _trend(tab2, "humidity_pct",  "Humidity (%)",     COLORS["cyan"],    85,  None, [0, 100])
-    _trend(tab3, "gas_ppm",       "Gas (PPM)",        COLORS["purple"],  300, 500)
-    _trend(tab4, "vibration_g",   "Vibration (g)",    COLORS["blue"],    1.5, 2.5)
+    with tab3:
+        st.info("Gas sensor provides detection only — numeric PPM measurement not available.")
+    with tab4:
+        st.info("Vibration sensor provides detection only — numeric g value not available.")
 
 # ── Section: Recent Unsafe Events ─────────────────────────────────────────────
 st.markdown("""

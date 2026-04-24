@@ -241,10 +241,40 @@ with info_col:
             f'</div>'
         )
 
+    def _detection_card(label, detected):
+        if detected is None:
+            color, text = "#555555", "NO DATA"
+        elif detected:
+            color, text = "#ef4444", "DETECTED"
+        else:
+            color, text = "#22c55e", "NORMAL"
+        return (
+            f'<div class="sensor-card">'
+            f'  <div class="s-label">{label}</div>'
+            f'  <div class="s-value" style="color:{color}">{text}</div>'
+            f'</div>'
+        )
+
+    gas_detected = "gas_detected" in reasons
+    vib_detected = "vibration_detected" in reasons
+
+    def _detection_card(label, detected):
+        color   = COLORS["danger"] if detected else COLORS["safe"]
+        display = "DETECTED" if detected else "NORMAL"
+        return (
+            f'<div class="sensor-card">'
+            f'  <div class="s-label">{label}</div>'
+            f'  <div class="s-value" style="color:{color}">{display}</div>'
+            f'</div>'
+        )
+
+    gas_detected = "gas_detected" in reasons
+    vib_detected = "vibration_detected" in reasons
+
     p1, p2 = st.columns(2)
     with p1:
-        st.markdown(_sensor_card("Temperature", temp, "°C",  warn=35,  danger=40),  unsafe_allow_html=True)
-        st.markdown(_sensor_card("Gas (PPM)",   gas,  " ppm", warn=300, danger=500), unsafe_allow_html=True)
+        st.markdown(_sensor_card("Temperature", temp, "°C", warn=35, danger=40), unsafe_allow_html=True)
+        st.markdown(_detection_card("Gas", gas_detected),                         unsafe_allow_html=True)
     with p2:
-        st.markdown(_sensor_card("Humidity",    hum,  "%",    warn=85),              unsafe_allow_html=True)
-        st.markdown(_sensor_card("Vibration",   vib,  " g",   warn=1.5, danger=2.5), unsafe_allow_html=True)
+        st.markdown(_sensor_card("Humidity", hum, "%", warn=85),                  unsafe_allow_html=True)
+        st.markdown(_detection_card("Vibration", vib_detected),                   unsafe_allow_html=True)
