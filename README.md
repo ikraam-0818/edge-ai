@@ -170,7 +170,7 @@ Dashboard opens at `http://localhost:8501`
 ### Step 3 — Test Without a Raspberry Pi
 
 1. Log in as **admin / admin123**
-2. Navigate to **🎛️ Control Panel**
+2. Navigate to ** Control Panel**
 3. Click **Inject 10 Random Readings** to populate the dashboard with sample data
 4. Switch to **Admin View** or **Staff View** to see live data
 
