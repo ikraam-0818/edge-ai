@@ -14,7 +14,7 @@ from utils.api_client import (
     get_latest_frame, get_alert_frame,
 )
 from utils.styles import CUSTOM_CSS, COLORS
-from utils.auth import require_login, sidebar_user_info
+from utils.auth import require_login, sidebar_user_info, current_role, ROLE_ADMIN
 
 st.set_page_config(
     page_title="Staff View — Safety Monitor",
@@ -28,18 +28,20 @@ st_autorefresh(interval=3_000, key="staff_refresh")
 # ── Sidebar — workers only see Staff View ─────────────────────────────────────
 with st.sidebar:
     st.markdown("""
-    <div style="display:flex;align-items:center;gap:10px;padding:4px 0 16px;">
-        <img src="https://img.icons8.com/color/96/hard-hat.png" width="36"/>
-        <div>
-            <div style="font-weight:800;font-size:0.95rem;color:#e8edf5;letter-spacing:-0.3px;">Safety Monitor</div>
-            <div style="font-size:0.7rem;color:#4a6080;font-weight:600;">Edge AI System</div>
-        </div>
+    <div style="padding:4px 0 16px;">
+        <div style="font-weight:800;font-size:0.95rem;color:#e8edf5;letter-spacing:-0.3px;">Safety Monitor</div>
+        <div style="font-size:0.7rem;color:#4a6080;font-weight:600;">Edge AI System</div>
     </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
 
     st.markdown('<div style="font-size:0.65rem;font-weight:700;color:#4a6080;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Navigation</div>', unsafe_allow_html=True)
     st.page_link("pages/1_Staff_View.py", label="Live View")
+    if current_role() == ROLE_ADMIN:
+        st.page_link("pages/2_Admin_View.py", label="Admin Dashboard")
+        st.page_link("pages/3_Analytics.py",  label="Analytics")
+        st.page_link("pages/4_Alerts.py",     label="Alert Log")
+        st.page_link("pages/5_Control.py",    label="Control Panel")
 
     st.markdown("---")
     sidebar_user_info()

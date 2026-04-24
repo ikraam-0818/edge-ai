@@ -254,26 +254,3 @@ with st.form("login_form", clear_on_submit=False):
                 st.error(f"Access denied — {error_msg}")
 
 st.markdown("</div>", unsafe_allow_html=True)
-
-# ── Credentials hint ───────────────────────────────────────────────────────
-st.markdown("""
-<div class="creds-card">
-    <div class="creds-title">// Demo credentials</div>
-    <div class="creds-row">
-        <span class="role-tag role-admin">Admin</span>
-        <span class="creds-text"><strong>admin</strong> / admin123</span>
-    </div>
-    <div class="creds-row">
-        <span class="role-tag role-admin">Admin</span>
-        <span class="creds-text"><strong>manager</strong> / manager123</span>
-    </div>
-    <div class="creds-row">
-        <span class="role-tag role-staff">Staff</span>
-        <span class="creds-text"><strong>staff</strong> / staff123</span>
-    </div>
-    <div class="creds-row">
-        <span class="role-tag role-staff">Staff</span>
-        <span class="creds-text"><strong>worker</strong> / worker123</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)

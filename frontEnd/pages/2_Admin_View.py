@@ -30,12 +30,9 @@ st_autorefresh(interval=3_000, key="admin_refresh")
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("""
-    <div style="display:flex;align-items:center;gap:10px;padding:4px 0 16px;">
-        <img src="https://img.icons8.com/color/96/hard-hat.png" width="36"/>
-        <div>
-            <div style="font-weight:800;font-size:0.95rem;color:#e8edf5;letter-spacing:-0.3px;">Safety Monitor</div>
-            <div style="font-size:0.7rem;color:#4a6080;font-weight:600;">Edge AI System</div>
-        </div>
+    <div style="padding:4px 0 16px;">
+        <div style="font-weight:800;font-size:0.95rem;color:#e8edf5;letter-spacing:-0.3px;">Safety Monitor</div>
+        <div style="font-size:0.7rem;color:#4a6080;font-weight:600;">Edge AI System</div>
     </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
